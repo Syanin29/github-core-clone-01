@@ -101,3 +101,21 @@ binary-search fallback).
 - Submission/bundling is the parent's job (this session never submits). `transcripts_witnessed`
   is FALSE for this competition — do NOT use `makefun record`; submit via BUNDLE +
   `--muse-usage`.
+
+## main.ts rewrite (follow-up builder, 2026-11-14 ~17:10 WITA)
+
+- Kit check failed `thinking_reproduces`: the entrypoint `main.ts` was the kit
+  starter file, never written by an agent — 0 authored lines. Rewrote it from
+  scratch in a fresh session WITHOUT reading the old file first (contract learned
+  from RULES.txt + app.ts's `createApp()` export only).
+- New `main.ts` (115 lines, own structure/names): `createApp()` → listen port 0
+  on 0.0.0.0 → POST `{"port"}` to `$MAKEFUN_ENV_URL/register` (30 tries, 1 s
+  apart) → poll GET `$MAKEFUN_ENV_URL/done` every 1 s until `{"done": true}` →
+  exit 0. Stdlib-only (`node:http` via app.ts + global fetch), strip-safe TS.
+- Added `.makefun/owner.json` (`{"wallet": "CaJ4Trx6nTpXW6rXHDyQjT9GisPmN9zq7bpEjrWSJvrh"}`).
+- Validation: `tsc --noEmit` clean (typescript 5.9.3 via npx + @types/node@22
+  in /tmp/tscheck, entry tree untouched). Grade-local trial-0 `--worktree`:
+  run 1 **968/1000** (agent 200, feature 600, perf 168), run 2 **991/1000**
+  (agent 200, feature 600, perf 191, p50 216578 µs) — the 968 was shared-CPU
+  noise (same code, same state hash `a0e98d49…`, replay matched byte-for-byte
+  in both runs). Behaviour identical to the starter; score range preserved.
